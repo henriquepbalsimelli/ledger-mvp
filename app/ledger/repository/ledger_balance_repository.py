@@ -22,14 +22,6 @@ class LedgerBalanceRepository:
 
         return bal
 
-    def update_balance(self, account_id, new_balance):
-        query = """
-        UPDATE ledger_balances
-        SET balance = :new_balance
-        WHERE account_id = :account_id
-        """
-        self.db.execute(query, {'new_balance': new_balance, 'account_id': account_id})
-
     def create_balance(self, account_id: str, asset: str, available: str = "0", locked: str = "0"):
         bal = Balance(account_id=account_id, asset=asset, available=available, locked=locked)
         self.db.add(bal)

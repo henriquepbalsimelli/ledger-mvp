@@ -16,4 +16,14 @@ class Settings(BaseSettings):
         env_prefix = ""
         case_sensitive = False
 
-settings = Settings()
+def get_settings() -> Settings:
+    env = os.getenv("ENV", "local")
+
+    if env == "test":
+        settings = Settings()
+        settings.environment = "test"
+        config = settings.Config()
+        config.env_file = ".env.test"
+        return settings
+
+    return Settings()

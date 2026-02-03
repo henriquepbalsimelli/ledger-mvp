@@ -43,24 +43,6 @@ class LedgerService:
         bal = self.balance_repository.create_balance(account_id, asset, Decimal("0"), Decimal("0"))
         return bal
 
-    def create_event(self, *, idempotency_key: str, account_id: str, asset: str,
-                     delta: Decimal, event_type: str, reference_type: str, reference_id: str) -> LedgerEvent:
-
-        existing = self.event_repository.get_event_by_idempotency_key(idempotency_key)
-        if existing:
-            return existing
-
-        ev = self.event_repository.create_event(
-            idempotency_key=idempotency_key,
-            account_id=account_id,
-            asset=asset,
-            delta=delta,
-            event_type=event_type,
-            reference_type=reference_type,
-            reference_id=reference_id,
-        )
-        return ev
-
     def deposit(self, *, idempotency_key: str, account_id: str, asset: str, amount: Decimal, reference_id: str):
         bal = self._get_or_create_balance(account_id, asset)
         existing_event = self.event_repository.get_event_by_idempotency_key(idempotency_key)
@@ -74,7 +56,7 @@ class LedgerService:
             "idempotency_key": idempotency_key,
         })
 
-        ev = self.create_event(
+        ev = self.event_repository.create_event(
             idempotency_key=idempotency_key,
             account_id=account_id,
             asset=asset,
