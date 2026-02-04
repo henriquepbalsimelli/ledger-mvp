@@ -115,6 +115,7 @@ class LedgerErrorLogMapper:
             amount: str,
             request_id: str,
             idempotency_key: str,
+            reference_id: str = None,
     ) -> Dict:
         return {
             "operation": "lock",
@@ -126,6 +127,7 @@ class LedgerErrorLogMapper:
             "amount": amount,
             "request_id": request_id,
             "idempotency_key": idempotency_key,
+            "reference_id": reference_id
         }
 
     @staticmethod

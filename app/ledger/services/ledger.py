@@ -3,8 +3,7 @@ from starlette.requests import Request
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import InsufficientFunds
-from app.ledger.models.ledger_event import LedgerEvent
+from app.core.exceptions import InsufficientFunds, LockExceedsAvailable, UnlockExceedsLocked
 from app.ledger.models.ledger_balance import Balance
 from app.ledger.repository.ledger_balance_repository import LedgerBalanceRepository
 from app.ledger.repository.ledger_event_repository import EventRepository
@@ -18,9 +17,11 @@ class LedgerService:
 
     def __init__(self, db: Session, request: Request):
         self.db = db
+        self.request = request
+
         self.balance_repository = LedgerBalanceRepository(db)
         self.event_repository = EventRepository(db)
-        self.request = request
+
         self.ledger_log_error = LedgerErrorLogger(__name__, request)
         self.ledger_log = LedgerLogger(__name__, request)
 
@@ -69,21 +70,19 @@ class LedgerService:
         self.db.flush()
         return ev, bal
 
-    def lock_funds(self, payload: schemas.LockIn, request: Request):
+    def lock_funds(self, payload: schemas.LockIn):
         self.ledger_log.lock(**{
-            "request_id": request.state.request_id,
             **payload.model_dump(),
         })
 
         bal = self._get_or_create_balance(payload.account_id, payload.asset)
         existing_event = self.event_repository.get_event_by_idempotency_key(payload.idempotency_key)
         if existing_event:
-            self.ledger_log_error.event_exists(**payload.model_dump(), request_id=request.state.request_id)
+            self.ledger_log_error.event_exists(**payload.model_dump(), request_id=self.request.state.request_id)
             return existing_event, bal
 
         if Decimal(bal.available) < payload.amount:
-            self.ledger_log_error.lock_exceeds_available(**payload.model_dump(), request_id=request.state.request_id)
-            raise InsufficientFunds(message=f"available={bal.available} < amount={payload.amount}", request=request, payload=payload.model_dump())
+            raise LockExceedsAvailable(message=f"available={bal.available} < amount={payload.amount}", request=self.request, payload=payload.model_dump())
 
         ev = self.event_repository.create_event(
             idempotency_key=payload.idempotency_key,
@@ -107,7 +106,7 @@ class LedgerService:
             return existing, bal
 
         if Decimal(bal.locked) < amount:
-            raise InsufficientFunds(
+            raise UnlockExceedsLocked(
                 message=f"locked={bal.locked} < amount={amount}",
                 request=self.request,
                 payload={
