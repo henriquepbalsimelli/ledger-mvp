@@ -62,7 +62,7 @@ def ensure_database_exists():
         port=POSTGRES_PORT,
         user=POSTGRES_USER,
         password=POSTGRES_PASSWORD,
-        dbname="postgres",  # database default
+        dbname=POSTGRES_DB,
         autocommit=True,
     )
 
@@ -152,7 +152,6 @@ def request_mock():
 
     request = Request(scope, receive)
 
-    # 🔑 ESSENCIAL: simula middleware
     request.state.request_id = scope["headers"][0][1].decode()
 
     return request
@@ -160,7 +159,6 @@ def request_mock():
 @pytest.fixture(scope="session", autouse=True)
 def create_test_schema(postgres_container):
 
-    # garante que o database existe
     ensure_database_exists()
 
 
