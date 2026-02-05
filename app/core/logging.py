@@ -1,9 +1,12 @@
 import logging
 import sys
+
 from pythonjsonlogger import jsonlogger
+
 from app.core.config import settings
 
 LOG_LEVEL = getattr(logging, settings.log_level.upper(), logging.INFO)
+
 
 def setup_logging():
     logger = logging.getLogger()
@@ -12,8 +15,7 @@ def setup_logging():
     handler = logging.StreamHandler(sys.stdout)
 
     formatter = jsonlogger.JsonFormatter(
-        "%(asctime)s %(levelname)s %(name)s %(message)s "
-        "%(request_id)s %(operation)s %(account_id)s %(asset)s"
+        "%(asctime)s %(levelname)s %(name)s %(message)s " "%(request_id)s %(operation)s %(account_id)s %(asset)s"
     )
 
     handler.setFormatter(formatter)
@@ -23,4 +25,3 @@ def setup_logging():
 
     logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
-

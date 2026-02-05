@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
 from decimal import Decimal
+
+from pydantic import BaseModel, Field
+
 
 class EventCreate(BaseModel):
     idempotency_key: str = Field(..., min_length=6, max_length=120)

@@ -1,20 +1,17 @@
 from decimal import Decimal
-from starlette.requests import Request
 
 from sqlalchemy.orm import Session
+from starlette.requests import Request
 
 from app.core.exceptions import InsufficientFunds, LockExceedsAvailable, UnlockExceedsLocked
+from app.core.ledger_logger import LedgerErrorLogger, LedgerLogger
+from app.ledger import schemas
 from app.ledger.models.ledger_balance import Balance
 from app.ledger.repository.ledger_balance_repository import LedgerBalanceRepository
 from app.ledger.repository.ledger_event_repository import EventRepository
 
-from app.ledger import schemas
-
-from app.core.ledger_logger import LedgerLogger, LedgerErrorLogger
-
 
 class LedgerService:
-
     def __init__(self, db: Session, request: Request):
         self.db = db
         self.request = request
@@ -50,12 +47,14 @@ class LedgerService:
         if existing_event:
             return existing_event, bal
 
-        self.ledger_log.deposit(**{
-            "account_id": account_id,
-            "asset": asset,
-            "amount": amount,
-            "idempotency_key": idempotency_key,
-        })
+        self.ledger_log.deposit(
+            **{
+                "account_id": account_id,
+                "asset": asset,
+                "amount": amount,
+                "idempotency_key": idempotency_key,
+            }
+        )
 
         ev = self.event_repository.create_event(
             idempotency_key=idempotency_key,
@@ -71,9 +70,11 @@ class LedgerService:
         return ev, bal
 
     def lock_funds(self, payload: schemas.LockIn):
-        self.ledger_log.lock(**{
-            **payload.model_dump(),
-        })
+        self.ledger_log.lock(
+            **{
+                **payload.model_dump(),
+            }
+        )
 
         bal = self._get_or_create_balance(payload.account_id, payload.asset)
         existing_event = self.event_repository.get_event_by_idempotency_key(payload.idempotency_key)
@@ -82,7 +83,11 @@ class LedgerService:
             return existing_event, bal
 
         if Decimal(bal.available) < payload.amount:
-            raise LockExceedsAvailable(message=f"available={bal.available} < amount={payload.amount}", request=self.request, payload=payload.model_dump())
+            raise LockExceedsAvailable(
+                message=f"available={bal.available} < amount={payload.amount}",
+                request=self.request,
+                payload=payload.model_dump(),
+            )
 
         ev = self.event_repository.create_event(
             idempotency_key=payload.idempotency_key,
@@ -114,7 +119,7 @@ class LedgerService:
                     "asset": asset,
                     "amount": amount,
                     "idempotency_key": idempotency_key,
-                }
+                },
             )
 
         ev = self.event_repository.create_event(
@@ -132,13 +137,13 @@ class LedgerService:
         return ev, bal
 
     def withdraw(
-            self,
-            *,
-            idempotency_key: str,
-            account_id: str,
-            asset: str,
-            amount: Decimal,
-            reference_id: str,
+        self,
+        *,
+        idempotency_key: str,
+        account_id: str,
+        asset: str,
+        amount: Decimal,
+        reference_id: str,
     ):
         if amount <= 0:
             raise ValueError("Withdraw amount must be positive")
@@ -146,13 +151,15 @@ class LedgerService:
         bal = self._get_or_create_balance(account_id, asset)
         existing = self.event_repository.get_event_by_idempotency_key(idempotency_key)
         if existing:
-            self.ledger_log_error.event_exists(**{
-                "account_id": account_id,
-                "asset": asset,
-                "amount": amount,
-                "idempotency_key": idempotency_key,
-                "operation": "withdraw",
-            })
+            self.ledger_log_error.event_exists(
+                **{
+                    "account_id": account_id,
+                    "asset": asset,
+                    "amount": amount,
+                    "idempotency_key": idempotency_key,
+                    "operation": "withdraw",
+                }
+            )
             return existing, bal
 
         if bal.available < amount:
@@ -164,7 +171,7 @@ class LedgerService:
                     "asset": asset,
                     "amount": amount,
                     "idempotency_key": idempotency_key,
-                }
+                },
             )
 
         ev = self.event_repository.create_event(

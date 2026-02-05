@@ -3,6 +3,7 @@ import os
 
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     database_url: str
 
@@ -14,6 +15,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_prefix = ""
         case_sensitive = False
+
 
 def get_settings() -> Settings:
     env = os.getenv("ENV", "local")

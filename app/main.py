@@ -1,10 +1,12 @@
+from logging import getLogger
+
+from fastapi import FastAPI
 from starlette.responses import JSONResponse
 
-from app.ledger.controllers.ledger import router as ledger_router
-from fastapi import FastAPI
 from app.core.logging import setup_logging
 from app.core.middleware import RequestContextMiddleware
-from logging import getLogger
+from app.ledger.controllers.ledger import router as ledger_router
+
 logger = getLogger(__name__)
 setup_logging()
 
@@ -16,6 +18,7 @@ app.include_router(ledger_router)
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
@@ -34,4 +37,5 @@ async def global_exception_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="localhost", port=8080)

@@ -1,19 +1,11 @@
 # app/core/log_mapper.py
-from typing import Dict
 from decimal import Decimal
+from typing import Dict
 
 
 class LedgerLogMapper:
-
     @staticmethod
-    def deposit(
-        *,
-        account_id: str,
-        asset: str,
-        amount: Decimal,
-        request_id: str,
-        idempotency_key: str
-    ) -> Dict:
+    def deposit(*, account_id: str, asset: str, amount: Decimal, request_id: str, idempotency_key: str) -> Dict:
         return {
             "operation": "deposit",
             "account_id": account_id,
@@ -31,7 +23,7 @@ class LedgerLogMapper:
         amount: Decimal,
         request_id: str,
         idempotency_key: str = None,
-        reference_id: str = None
+        reference_id: str = None,
     ) -> Dict:
         return {
             "operation": "lock",
@@ -44,14 +36,7 @@ class LedgerLogMapper:
         }
 
     @staticmethod
-    def withdraw(
-        *,
-        account_id: str,
-        asset: str,
-        amount: Decimal,
-        request_id: str,
-        idempotency_key: str
-    ) -> Dict:
+    def withdraw(*, account_id: str, asset: str, amount: Decimal, request_id: str, idempotency_key: str) -> Dict:
         return {
             "operation": "withdraw",
             "account_id": account_id,

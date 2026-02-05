@@ -7,16 +7,13 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, create_engine
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import create_engine, engine_from_config, pool
 
-from app.core.db import Base
 from app.core.config import settings
-
-from app.ledger.models.ledger_event import LedgerEvent
+from app.core.db import Base
 from app.ledger.models.ledger_balance import Balance
+from app.ledger.models.ledger_event import LedgerEvent
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -73,9 +70,7 @@ def run_migrations_online() -> None:
     connectable = create_engine(settings.database_url)
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

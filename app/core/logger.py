@@ -1,6 +1,7 @@
 # app/core/logger.py
 import logging
 
+
 class ContextLogger(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         extra = self.extra.copy()

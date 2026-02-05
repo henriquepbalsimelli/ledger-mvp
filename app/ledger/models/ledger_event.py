@@ -1,9 +1,12 @@
 # app/ledger/models.py
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime, Numeric
+
+from sqlalchemy import DateTime, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
+
 from app.core.db import Base
+
 
 class LedgerEvent(Base):
     __tablename__ = "ledger_event"
@@ -21,5 +24,6 @@ class LedgerEvent(Base):
     reference_type: Mapped[str] = mapped_column(String(32), nullable=False)
     reference_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now(timezone.utc), nullable=False)
-
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now(timezone.utc), nullable=False
+    )

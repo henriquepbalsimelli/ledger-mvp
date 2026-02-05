@@ -4,7 +4,7 @@ from app.core.ledger_logger import LedgerErrorLogger
 
 
 class InsufficientFunds(Exception):
-    def __init__(self, request: Request, payload, message="Insufficient funds" ):
+    def __init__(self, request: Request, payload, message="Insufficient funds"):
         self.message = message
         super().__init__(self.message)
 
@@ -13,7 +13,7 @@ class InsufficientFunds(Exception):
 
 
 class LockExceedsAvailable(Exception):
-    def __init__(self, request: Request, payload, message="Lock exceeds available funds" ):
+    def __init__(self, request: Request, payload, message="Lock exceeds available funds"):
         self.message = message
         super().__init__(self.message)
 
@@ -22,7 +22,7 @@ class LockExceedsAvailable(Exception):
 
 
 class UnlockExceedsLocked(Exception):
-    def __init__(self, request: Request, payload, message="Unlock exceeds locked funds" ):
+    def __init__(self, request: Request, payload, message="Unlock exceeds locked funds"):
         self.message = message
         super().__init__(self.message)
 

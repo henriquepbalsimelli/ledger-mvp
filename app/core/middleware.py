@@ -1,7 +1,9 @@
+import logging
 import uuid
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-import logging
+
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

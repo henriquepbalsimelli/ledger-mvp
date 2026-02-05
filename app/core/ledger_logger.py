@@ -4,8 +4,8 @@ import logging
 from starlette.requests import Request
 
 from app.core.error_log_mapper import LedgerErrorLogMapper
-from app.core.logger import ContextLogger
 from app.core.log_mapper import LedgerLogMapper
+from app.core.logger import ContextLogger
 
 
 class LedgerLogger:

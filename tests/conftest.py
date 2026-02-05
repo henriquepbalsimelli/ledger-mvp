@@ -1,21 +1,23 @@
+import os
 import uuid
 
 from dotenv import load_dotenv
 
 from app.core.config import get_settings
-import os
+
 load_dotenv(verbose=True, override=True, dotenv_path=".env.test")
 
 import subprocess
 import time
-import pytest
+
 import psycopg
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.db import Base
-settings = get_settings()
 
+settings = get_settings()
 
 
 # Engine exclusiva para testes
@@ -32,10 +34,10 @@ TestingSessionLocal = sessionmaker(
 )
 
 
-POSTGRES_PORT=os.getenv("POSTGRES_PORT")
-POSTGRES_USER=os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD=os.getenv("POSTGRES_PASSWORD")
-POSTGRES_DB=os.getenv("POSTGRES_DB")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
 POSTGRES_CONTAINER_NAME = "test-postgres-container"
 
 
@@ -56,6 +58,7 @@ def wait_for_postgres():
 
     raise RuntimeError("Postgres did not become ready")
 
+
 def ensure_database_exists():
     conn = psycopg.connect(
         host="localhost",
@@ -67,15 +70,14 @@ def ensure_database_exists():
     )
 
     with conn.cursor() as cur:
-        cur.execute(
-            f"SELECT 1 FROM pg_database WHERE datname = '{POSTGRES_DB}'"
-        )
+        cur.execute(f"SELECT 1 FROM pg_database WHERE datname = '{POSTGRES_DB}'")
         exists = cur.fetchone()
 
         if not exists:
             cur.execute(f'CREATE DATABASE "{POSTGRES_DB}"')
 
     conn.close()
+
 
 @pytest.fixture(scope="session", autouse=True)
 def postgres_container():
@@ -131,11 +133,13 @@ def db_session():
         transaction.rollback()
         connection.close()
 
+
 @pytest.fixture(scope="function")
 def request_mock():
-    from starlette.requests import Request
-    from starlette.datastructures import Headers
     import uuid
+
+    from starlette.datastructures import Headers
+    from starlette.requests import Request
 
     async def receive():
         return {"type": "http.request", "body": b""}
@@ -144,9 +148,7 @@ def request_mock():
         "type": "http",
         "method": "POST",
         "path": "/test",
-        "headers": Headers({
-            "x-request-id": str(uuid.uuid4())
-        }).raw,
+        "headers": Headers({"x-request-id": str(uuid.uuid4())}).raw,
         "query_string": b"",
     }
 
@@ -156,11 +158,10 @@ def request_mock():
 
     return request
 
+
 @pytest.fixture(scope="session", autouse=True)
 def create_test_schema(postgres_container):
-
     ensure_database_exists()
-
 
     Base.metadata.create_all(bind=engine)
 

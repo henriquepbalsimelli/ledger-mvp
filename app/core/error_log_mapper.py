@@ -1,7 +1,7 @@
 from typing import Dict
 
-class LedgerErrorLogMapper:
 
+class LedgerErrorLogMapper:
     @staticmethod
     def insufficient_funds(
         *,
@@ -26,13 +26,13 @@ class LedgerErrorLogMapper:
 
     @staticmethod
     def negative_amount(
-            *,
-            account_id: str,
-            asset: str,
-            amount: str,
-            request_id: str,
-            idempotency_key: str,
-    )-> Dict:
+        *,
+        account_id: str,
+        asset: str,
+        amount: str,
+        request_id: str,
+        idempotency_key: str,
+    ) -> Dict:
         return {
             "operation": "withdraw",
             "error_type": "NEGATIVE_AMOUNT",
@@ -47,12 +47,12 @@ class LedgerErrorLogMapper:
 
     @staticmethod
     def invalid_asset(
-            *,
-            account_id: str,
-            asset: str,
-            amount: str,
-            request_id: str,
-            idempotency_key: str,
+        *,
+        account_id: str,
+        asset: str,
+        amount: str,
+        request_id: str,
+        idempotency_key: str,
     ) -> Dict:
         return {
             "operation": "withdraw",
@@ -68,11 +68,11 @@ class LedgerErrorLogMapper:
 
     @staticmethod
     def balance_not_found(
-            *,
-            account_id: str,
-            asset: str,
-            request_id: str,
-            idempotency_key: str,
+        *,
+        account_id: str,
+        asset: str,
+        request_id: str,
+        idempotency_key: str,
     ) -> Dict:
         return {
             "operation": "withdraw",
@@ -87,13 +87,13 @@ class LedgerErrorLogMapper:
 
     @staticmethod
     def invalid_operation(
-            *,
-            account_id: str,
-            asset: str,
-            amount: str,
-            request_id: str,
-            idempotency_key: str,
-            operation = "withdraw",
+        *,
+        account_id: str,
+        asset: str,
+        amount: str,
+        request_id: str,
+        idempotency_key: str,
+        operation="withdraw",
     ) -> Dict:
         return {
             "operation": operation,
@@ -109,13 +109,13 @@ class LedgerErrorLogMapper:
 
     @staticmethod
     def lock_exceeds_available(
-            *,
-            account_id: str,
-            asset: str,
-            amount: str,
-            request_id: str,
-            idempotency_key: str,
-            reference_id: str = None,
+        *,
+        account_id: str,
+        asset: str,
+        amount: str,
+        request_id: str,
+        idempotency_key: str,
+        reference_id: str = None,
     ) -> Dict:
         return {
             "operation": "lock",
@@ -127,17 +127,17 @@ class LedgerErrorLogMapper:
             "amount": amount,
             "request_id": request_id,
             "idempotency_key": idempotency_key,
-            "reference_id": reference_id
+            "reference_id": reference_id,
         }
 
     @staticmethod
     def unlock_exceeds_locked(
-            *,
-            account_id: str,
-            asset: str,
-            amount: str,
-            request_id: str,
-            idempotency_key: str,
+        *,
+        account_id: str,
+        asset: str,
+        amount: str,
+        request_id: str,
+        idempotency_key: str,
     ) -> Dict:
         return {
             "operation": "unlock",
@@ -153,12 +153,12 @@ class LedgerErrorLogMapper:
 
     @staticmethod
     def settle_exceeds_locked(
-            *,
-            account_id: str,
-            asset: str,
-            amount: str,
-            request_id: str,
-            idempotency_key: str,
+        *,
+        account_id: str,
+        asset: str,
+        amount: str,
+        request_id: str,
+        idempotency_key: str,
     ) -> Dict:
         return {
             "operation": "settle",
@@ -174,14 +174,14 @@ class LedgerErrorLogMapper:
 
     @staticmethod
     def event_exists(
-            *,
-            account_id: str,
-            asset: str,
-            amount: str,
-            request_id: str,
-            idempotency_key: str,
-            reference_id: str = None,
-            operation = "create_event",
+        *,
+        account_id: str,
+        asset: str,
+        amount: str,
+        request_id: str,
+        idempotency_key: str,
+        reference_id: str = None,
+        operation="create_event",
     ) -> Dict:
         return {
             "operation": operation,
@@ -193,5 +193,5 @@ class LedgerErrorLogMapper:
             "amount": amount,
             "request_id": request_id,
             "idempotency_key": idempotency_key,
-            "reference_id": reference_id
+            "reference_id": reference_id,
         }

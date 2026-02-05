@@ -1,5 +1,6 @@
-from app.ledger.models.ledger_balance import Balance
 from sqlalchemy import select
+
+from app.ledger.models.ledger_balance import Balance
 
 
 class LedgerBalanceRepository:
@@ -7,9 +8,7 @@ class LedgerBalanceRepository:
         self.db = db
 
     def get_balances_by_account_id(self, account_id: str):
-        rows = self.db.execute(
-            select(Balance).where(Balance.account_id == account_id)
-        ).scalars().all()
+        rows = self.db.execute(select(Balance).where(Balance.account_id == account_id)).scalars().all()
         return rows
 
     def get_balance_by_account_id(self, account_id: str, asset: str):
