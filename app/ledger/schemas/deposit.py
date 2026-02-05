@@ -6,10 +6,10 @@ from pydantic import BaseModel, Field
 
 class DepositRequest(BaseModel):
     idempotency_key: str = Field(..., description="A unique key to ensure idempotency of the request")
-    account_id: str = Field(
+    account_id: int = Field(
         ...,
         description="The ID of the account to deposit funds into",
-        examples=["3e6ab223-8094-4764-9e81-91574defe0a9"],
+        examples=[2],
     )
     asset: str = Field(..., description="The asset type to deposit (e.g., 'USD', 'BTC')", examples=["USD", "BTC"])
     amount: Decimal = Field(

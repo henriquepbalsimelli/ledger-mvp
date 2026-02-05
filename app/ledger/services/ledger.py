@@ -6,7 +6,7 @@ from starlette.requests import Request
 from app.core.exceptions import InsufficientFunds, LockExceedsAvailable, UnlockExceedsLocked
 from app.core.ledger_logger import LedgerErrorLogger, LedgerLogger
 from app.ledger import schemas
-from app.ledger.models.ledger_balance import Balance
+from app.ledger.models.balance import Balance
 from app.ledger.repository.ledger_balance_repository import LedgerBalanceRepository
 from app.ledger.repository.ledger_event_repository import EventRepository
 
@@ -22,7 +22,7 @@ class LedgerService:
         self.ledger_log_error = LedgerErrorLogger(__name__, request)
         self.ledger_log = LedgerLogger(__name__, request)
 
-    def get_balances(self, account_id: str):
+    def get_balances(self, account_id: int):
         rows = self.balance_repository.get_balances_by_account_id(account_id)
         balances = {
             r.asset: {
@@ -33,7 +33,7 @@ class LedgerService:
         }
         return balances
 
-    def _get_or_create_balance(self, account_id: str, asset: str) -> Balance:
+    def _get_or_create_balance(self, account_id: int, asset: str) -> Balance:
         bal = self.balance_repository.get_balance_by_account_id(account_id, asset)
 
         if bal:
@@ -41,7 +41,7 @@ class LedgerService:
         bal = self.balance_repository.create_balance(account_id, asset, Decimal("0"), Decimal("0"))
         return bal
 
-    def deposit(self, *, idempotency_key: str, account_id: str, asset: str, amount: Decimal, reference_id: str):
+    def deposit(self, *, idempotency_key: str, account_id: int, asset: str, amount: Decimal, reference_id: str):
         bal = self._get_or_create_balance(account_id, asset)
         existing_event = self.event_repository.get_event_by_idempotency_key(idempotency_key)
         if existing_event:
@@ -104,7 +104,7 @@ class LedgerService:
         self.db.flush()
         return ev, bal
 
-    def unlock_funds(self, *, idempotency_key: str, account_id: str, asset: str, amount: Decimal, reference_id: str):
+    def unlock_funds(self, *, idempotency_key: str, account_id: int, asset: str, amount: Decimal, reference_id: str):
         existing = self.event_repository.get_event_by_idempotency_key(idempotency_key)
         bal = self._get_or_create_balance(account_id, asset)
         if existing:
@@ -140,7 +140,7 @@ class LedgerService:
         self,
         *,
         idempotency_key: str,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: Decimal,
         reference_id: str,

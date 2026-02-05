@@ -1,18 +1,18 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Numeric, String, UniqueConstraint
+from sqlalchemy import DateTime, Numeric, String, UniqueConstraint, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
 
 
 class Balance(Base):
-    __tablename__ = "ledger_balance"
+    __tablename__ = "balance"
     __table_args__ = (UniqueConstraint("account_id", "asset", name="uq_balance_account_asset"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    account_id: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("account.id"), nullable=False, index=True)
     asset: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
 
     available: Mapped[str] = mapped_column(Numeric(20, 8), nullable=False, default=0)

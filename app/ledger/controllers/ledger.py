@@ -13,7 +13,7 @@ router = APIRouter(prefix="/ledger", tags=["ledger"])
 
 
 @router.get("/balances", response_model=schemas.BalancesResponse)
-def get_balances(account_id: str, request: Request, db: Session = Depends(get_db)):
+def get_balances(account_id: int, request: Request, db: Session = Depends(get_db)):
     service = LedgerService(db, request=request)
     balances = service.get_balances(account_id)
     return schemas.BalancesResponse(account_id=account_id, balances=balances)

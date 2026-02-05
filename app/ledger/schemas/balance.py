@@ -10,5 +10,5 @@ class BalanceOut(BaseModel):
 
 
 class BalancesResponse(BaseModel):
-    account_id: str
+    account_id: int
     balances: Optional[Dict[str, BalanceOut]] = None

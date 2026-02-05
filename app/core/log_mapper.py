@@ -5,7 +5,7 @@ from typing import Dict
 
 class LedgerLogMapper:
     @staticmethod
-    def deposit(*, account_id: str, asset: str, amount: Decimal, request_id: str, idempotency_key: str) -> Dict:
+    def deposit(*, account_id: int, asset: str, amount: Decimal, request_id: str, idempotency_key: str) -> Dict:
         return {
             "operation": "deposit",
             "account_id": account_id,
@@ -18,7 +18,7 @@ class LedgerLogMapper:
     @staticmethod
     def lock(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: Decimal,
         request_id: str,
@@ -36,7 +36,7 @@ class LedgerLogMapper:
         }
 
     @staticmethod
-    def withdraw(*, account_id: str, asset: str, amount: Decimal, request_id: str, idempotency_key: str) -> Dict:
+    def withdraw(*, account_id: int, asset: str, amount: Decimal, request_id: str, idempotency_key: str) -> Dict:
         return {
             "operation": "withdraw",
             "account_id": account_id,

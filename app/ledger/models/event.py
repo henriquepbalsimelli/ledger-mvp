@@ -1,23 +1,21 @@
-# app/ledger/models.py
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Numeric, String
+from sqlalchemy import DateTime, Numeric, String, BIGINT, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
 
 
 class LedgerEvent(Base):
-    __tablename__ = "ledger_event"
+    __tablename__ = "event"
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     idempotency_key: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
 
-    account_id: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("account.id"), nullable=False, index=True)
     asset: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
 
-    # delta representa uma mudança "lógica" (ex: +100 depósito, -100 débito final, etc.)
     delta: Mapped[str] = mapped_column(Numeric(20, 8), nullable=False)
 
     event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)

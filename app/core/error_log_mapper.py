@@ -5,7 +5,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def insufficient_funds(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,
@@ -27,7 +27,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def negative_amount(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,
@@ -48,7 +48,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def invalid_asset(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,
@@ -69,7 +69,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def balance_not_found(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         request_id: str,
         idempotency_key: str,
@@ -88,7 +88,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def invalid_operation(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,
@@ -110,7 +110,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def lock_exceeds_available(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,
@@ -133,7 +133,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def unlock_exceeds_locked(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,
@@ -154,7 +154,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def settle_exceeds_locked(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,
@@ -175,7 +175,7 @@ class LedgerErrorLogMapper:
     @staticmethod
     def event_exists(
         *,
-        account_id: str,
+        account_id: int,
         asset: str,
         amount: str,
         request_id: str,

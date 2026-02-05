@@ -10,10 +10,14 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine, engine_from_config, pool
 
-from app.core.config import settings
+from app.core.config import get_settings
+settings = get_settings()
 from app.core.db import Base
-from app.ledger.models.ledger_balance import Balance
-from app.ledger.models.ledger_event import LedgerEvent
+from app.ledger.models.account import Account
+from app.ledger.models.balance import Balance
+from app.ledger.models.event import LedgerEvent
+from app.ledger.models.settlement_status import SettlementStatus
+from app.ledger.models.settlement import Settlement
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

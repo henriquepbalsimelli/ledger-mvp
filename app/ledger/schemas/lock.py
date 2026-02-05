@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class Unlock(BaseModel):
     idempotency_key: str
-    account_id: str
+    account_id: int
     asset: str
     amount: Decimal
     reference_id: str
@@ -13,7 +13,7 @@ class Unlock(BaseModel):
 
 class LockIn(BaseModel):
     idempotency_key: str
-    account_id: str
+    account_id: int
     asset: str
     amount: Decimal
     reference_id: str

@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class EventCreate(BaseModel):
     idempotency_key: str = Field(..., min_length=6, max_length=120)
-    account_id: str = Field(examples=["3e6ab223-8094-4764-9e81-91574defe0a9"])
+    account_id: int = Field(examples=["3e6ab223-8094-4764-9e81-91574defe0a9"])
     asset: str = Field(examples=["USD", "BTC"])
     delta: Decimal = Field(..., examples=["100.00", "-0.005"])
     event_type: str = Field(examples=["deposit", "withdrawal", "transfer"])
@@ -15,7 +15,7 @@ class EventCreate(BaseModel):
 
 class EventOut(BaseModel):
     idempotency_key: str
-    account_id: str
+    account_id: int
     asset: str
     delta: Decimal
     event_type: str

@@ -3,7 +3,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.ledger.models.ledger_event import LedgerEvent
+from app.ledger.models.event import LedgerEvent
 
 
 class EventRepository:
@@ -22,7 +22,7 @@ class EventRepository:
     def create_event(
         self,
         idempotency_key: str,
-        account_id: str,
+        account_id: int,
         asset: str,
         delta: Decimal,
         event_type: str,
