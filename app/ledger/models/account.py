@@ -1,12 +1,10 @@
-
+import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, String, UniqueConstraint, BIGINT
+from sqlalchemy import BIGINT, DateTime, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
-
-import uuid
 
 
 class Account(Base):

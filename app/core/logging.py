@@ -3,7 +3,9 @@ import sys
 
 from pythonjsonlogger import jsonlogger
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 LOG_LEVEL = getattr(logging, settings.log_level.upper(), logging.INFO)
 

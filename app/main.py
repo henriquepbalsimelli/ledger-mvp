@@ -3,6 +3,7 @@ from logging import getLogger
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
 
+import app.ledger.models
 from app.core.logging import setup_logging
 from app.core.middleware import RequestContextMiddleware
 from app.ledger.controllers.ledger import router as ledger_router
