@@ -45,6 +45,15 @@ class LedgerService:
         bal = self._get_or_create_balance(account_id, asset)
         existing_event = self.event_repository.get_event_by_idempotency_key(idempotency_key)
         if existing_event:
+            self.ledger_log_error.event_exists(
+                **{
+                    "account_id": account_id,
+                    "asset": asset,
+                    "amount": amount,
+                    "idempotency_key": idempotency_key,
+                    "operation": "deposit",
+                }
+            )
             return existing_event, bal
 
         self.ledger_log.deposit(
@@ -79,7 +88,7 @@ class LedgerService:
         bal = self._get_or_create_balance(payload.account_id, payload.asset)
         existing_event = self.event_repository.get_event_by_idempotency_key(payload.idempotency_key)
         if existing_event:
-            self.ledger_log_error.event_exists(**payload.model_dump(), request_id=self.request.state.request_id)
+            self.ledger_log_error.event_exists(**payload.model_dump())
             return existing_event, bal
 
         if Decimal(bal.available) < payload.amount:
