@@ -207,3 +207,34 @@ class TestFinancialInvariants:
                 idempotency_key="wd-7",
                 reference_id="ref-wd-7",
             )
+
+    def test_withdraw_considers_locked_balance(self, db_session, request_mock):
+        service = LedgerService(db_session, request_mock)
+        account = AccountBuilder(db_session).build()
+        asset = "USDC"
+        service.deposit(
+            account_id=account.id,
+            asset=asset,
+            amount=Decimal("100"),
+            idempotency_key="dep-8",
+            reference_id="ref-8",
+        )
+
+        service.lock_funds(
+            schemas.LockIn(
+                account_id=account.id,
+                asset=asset,
+                amount=Decimal("80"),
+                idempotency_key="lock-8",
+                reference_id="ref-8",
+            )
+        )
+
+        with pytest.raises(InsufficientFunds):
+            service.withdraw(
+                account_id=account.id,
+                asset=asset,
+                amount=Decimal("30"),
+                idempotency_key="wd-8",
+                reference_id="ref-wd-8",
+            )

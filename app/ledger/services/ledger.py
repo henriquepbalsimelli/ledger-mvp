@@ -33,8 +33,11 @@ class LedgerService:
         }
         return balances
 
-    def _get_or_create_balance(self, account_id: int, asset: str) -> Balance:
-        bal = self.balance_repository.get_balance_by_account_id(account_id, asset)
+    def _get_or_create_balance(self, account_id: int, asset: str, for_update: bool = True) -> Balance:
+        if for_update:
+            bal = self.balance_repository.get_balance_by_accont_id_for_update(account_id, asset)
+        else:
+            bal = self.balance_repository.get_balance_by_account_id(account_id, asset)
 
         if bal:
             return bal
@@ -42,7 +45,7 @@ class LedgerService:
         return bal
 
     def deposit(self, *, idempotency_key: str, account_id: int, asset: str, amount: Decimal, reference_id: str):
-        bal = self._get_or_create_balance(account_id, asset)
+        bal = self._get_or_create_balance(account_id, asset, True)
         existing_event = self.event_repository.get_event_by_idempotency_key(idempotency_key)
         if existing_event:
             self.ledger_log_error.event_exists(
@@ -85,7 +88,7 @@ class LedgerService:
             }
         )
 
-        bal = self._get_or_create_balance(payload.account_id, payload.asset)
+        bal = self._get_or_create_balance(payload.account_id, payload.asset, True)
         existing_event = self.event_repository.get_event_by_idempotency_key(payload.idempotency_key)
         if existing_event:
             self.ledger_log_error.event_exists(**payload.model_dump())
