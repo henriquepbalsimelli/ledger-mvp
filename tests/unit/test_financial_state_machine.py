@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_DOWN
+from decimal import ROUND_DOWN, Decimal
 
 import pytest
 from hypothesis import Phase, settings
@@ -6,10 +6,10 @@ from hypothesis import strategies as st
 from hypothesis.stateful import RuleBasedStateMachine, invariant, rule, run_state_machine_as_test
 from sqlalchemy import text
 
-from tests.conftest import TestingSessionLocal, engine
-from tests.builders.account_builder import AccountBuilder
 from app.ledger import schemas
 from app.ledger.services.ledger import LedgerService
+from tests.builders.account_builder import AccountBuilder
+from tests.conftest import TestingSessionLocal, engine
 
 
 class LedgerStateMachine(RuleBasedStateMachine):
@@ -25,8 +25,8 @@ class LedgerStateMachine(RuleBasedStateMachine):
         self.counter = 0
 
     def _fake_request(self):
-        from types import SimpleNamespace
         import uuid
+        from types import SimpleNamespace
 
         return SimpleNamespace(state=SimpleNamespace(request_id=f"req-{uuid.uuid4().hex[:8]}"))
 
@@ -36,7 +36,9 @@ class LedgerStateMachine(RuleBasedStateMachine):
         self.connection.close()
 
     def _balances(self):
-        bal = self.service.get_balances(self.account.id).get(self.asset, {"available": Decimal("0"), "locked": Decimal("0")})
+        bal = self.service.get_balances(self.account.id).get(
+            self.asset, {"available": Decimal("0"), "locked": Decimal("0")}
+        )
         return Decimal(bal["available"]), Decimal(bal["locked"])
 
     @rule(amount=st.decimals(min_value=Decimal("0.01"), max_value=Decimal("200"), places=2))
@@ -49,6 +51,7 @@ class LedgerStateMachine(RuleBasedStateMachine):
             idempotency_key=f"dep-{self.counter}",
             reference_id=f"ref-{self.counter}",
         )
+        self.session.commit()
 
     @rule(amount=st.decimals(min_value=Decimal("0.01"), max_value=Decimal("200"), places=2))
     def lock(self, amount):
@@ -65,6 +68,7 @@ class LedgerStateMachine(RuleBasedStateMachine):
                 reference_id=f"ref-{self.counter}",
             )
         )
+        self.session.commit()
 
     @rule(amount=st.decimals(min_value=Decimal("0.01"), max_value=Decimal("200"), places=2))
     def unlock(self, amount):
@@ -79,6 +83,7 @@ class LedgerStateMachine(RuleBasedStateMachine):
             amount=amount,
             reference_id=f"ref-{self.counter}",
         )
+        self.session.commit()
 
     @rule(amount=st.decimals(min_value=Decimal("0.01"), max_value=Decimal("200"), places=2))
     def withdraw(self, amount):
@@ -93,6 +98,7 @@ class LedgerStateMachine(RuleBasedStateMachine):
             amount=amount,
             reference_id=f"ref-{self.counter}",
         )
+        self.session.commit()
 
     #
     @invariant()
@@ -103,13 +109,20 @@ class LedgerStateMachine(RuleBasedStateMachine):
         events_sum = sum(
             Decimal(row[0])
             for row in self.session.execute(
-                text("select delta from event where account_id=:account_id and asset=:asset and event_type in ('deposit', 'withdraw')"),
+                text(
+                    "select e.delta "
+                    "from event e "
+                    "join assets a on a.id = e.id_asset "
+                    "where e.account_id=:account_id and a.nm_asset=:asset "
+                    "and e.event_type in ('deposit', 'withdraw')"
+                ),
                 {"account_id": self.account.id, "asset": self.asset},
             )
         )
         assert available >= 0
         assert locked >= 0
         assert total == events_sum
+
 
 @pytest.mark.property
 def test_state_machine():

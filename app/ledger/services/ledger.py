@@ -7,6 +7,7 @@ from app.core.exceptions import InsufficientFunds, LockExceedsAvailable, UnlockE
 from app.core.ledger_logger import LedgerErrorLogger, LedgerLogger
 from app.ledger import schemas
 from app.ledger.models.balance import Balance
+from app.ledger.repository.asset_repository import AssetRepository
 from app.ledger.repository.ledger_balance_repository import LedgerBalanceRepository
 from app.ledger.repository.ledger_event_repository import EventRepository
 
@@ -18,6 +19,7 @@ class LedgerService:
 
         self.balance_repository = LedgerBalanceRepository(db)
         self.event_repository = EventRepository(db)
+        self.asset_repository = AssetRepository(db)
 
         self.ledger_log_error = LedgerErrorLogger(__name__, request)
         self.ledger_log = LedgerLogger(__name__, request)
@@ -25,7 +27,7 @@ class LedgerService:
     def get_balances(self, account_id: int):
         rows = self.balance_repository.get_balances_by_account_id(account_id)
         balances = {
-            r.asset: {
+            r.asset.nm_asset: {
                 "available": Decimal(r.available),
                 "locked": Decimal(r.locked),
             }
@@ -33,19 +35,20 @@ class LedgerService:
         }
         return balances
 
-    def _get_or_create_balance(self, account_id: int, asset: str, for_update: bool = True) -> Balance:
+    def _get_or_create_balance(self, account_id: int, id_asset: int, for_update: bool = True) -> Balance:
         if for_update:
-            bal = self.balance_repository.get_balance_by_accont_id_for_update(account_id, asset)
+            bal = self.balance_repository.get_balance_by_accont_id_for_update(account_id, id_asset)
         else:
-            bal = self.balance_repository.get_balance_by_account_id(account_id, asset)
+            bal = self.balance_repository.get_balance_by_account_id(account_id, id_asset)
 
         if bal:
             return bal
-        bal = self.balance_repository.create_balance(account_id, asset, Decimal("0"), Decimal("0"))
+        bal = self.balance_repository.create_balance(account_id, id_asset, Decimal("0"), Decimal("0"))
         return bal
 
     def deposit(self, *, idempotency_key: str, account_id: int, asset: str, amount: Decimal, reference_id: str):
-        bal = self._get_or_create_balance(account_id, asset, True)
+        asset_row = self.asset_repository.get_or_create(asset)
+        bal = self._get_or_create_balance(account_id, asset_row.id, True)
         existing_event = self.event_repository.get_event_by_idempotency_key(idempotency_key)
         if existing_event:
             self.ledger_log_error.event_exists(
@@ -71,7 +74,7 @@ class LedgerService:
         ev = self.event_repository.create_event(
             idempotency_key=idempotency_key,
             account_id=account_id,
-            asset=asset,
+            id_asset=asset_row.id,
             delta=amount,
             event_type="deposit",
             reference_type="deposit",
@@ -88,7 +91,8 @@ class LedgerService:
             }
         )
 
-        bal = self._get_or_create_balance(payload.account_id, payload.asset, True)
+        asset_row = self.asset_repository.get_or_create(payload.asset)
+        bal = self._get_or_create_balance(payload.account_id, asset_row.id, True)
         existing_event = self.event_repository.get_event_by_idempotency_key(payload.idempotency_key)
         if existing_event:
             self.ledger_log_error.event_exists(**payload.model_dump())
@@ -104,7 +108,7 @@ class LedgerService:
         ev = self.event_repository.create_event(
             idempotency_key=payload.idempotency_key,
             account_id=payload.account_id,
-            asset=payload.asset,
+            id_asset=asset_row.id,
             delta=-payload.amount,
             reference_id=payload.reference_id,
             event_type="lock",
@@ -113,12 +117,14 @@ class LedgerService:
 
         bal.available = Decimal(bal.available) - payload.amount
         bal.locked = Decimal(bal.locked) + payload.amount
+
         self.db.flush()
         return ev, bal
 
     def unlock_funds(self, *, idempotency_key: str, account_id: int, asset: str, amount: Decimal, reference_id: str):
         existing = self.event_repository.get_event_by_idempotency_key(idempotency_key)
-        bal = self._get_or_create_balance(account_id, asset)
+        asset_row = self.asset_repository.get_or_create(asset)
+        bal = self._get_or_create_balance(account_id, asset_row.id)
         if existing:
             return existing, bal
 
@@ -137,7 +143,7 @@ class LedgerService:
         ev = self.event_repository.create_event(
             idempotency_key=idempotency_key,
             account_id=account_id,
-            asset=asset,
+            id_asset=asset_row.id,
             delta=amount,
             event_type="unlock",
             reference_type="payment",
@@ -160,7 +166,8 @@ class LedgerService:
         if amount <= 0:
             raise ValueError("Withdraw amount must be positive")
 
-        bal = self._get_or_create_balance(account_id, asset)
+        asset_row = self.asset_repository.get_or_create(asset)
+        bal = self._get_or_create_balance(account_id, asset_row.id)
         existing = self.event_repository.get_event_by_idempotency_key(idempotency_key)
         if existing:
             self.ledger_log_error.event_exists(
@@ -189,7 +196,7 @@ class LedgerService:
         ev = self.event_repository.create_event(
             idempotency_key=idempotency_key,
             account_id=account_id,
-            asset=asset,
+            id_asset=asset_row.id,
             delta=-amount,
             event_type="withdraw",
             reference_type="withdraw",

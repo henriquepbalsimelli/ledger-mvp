@@ -1,10 +1,11 @@
+import uuid
 from decimal import Decimal
 
 import pytest
 
 from tests.builders.account_builder import AccountBuilder
 from tests.conftest import TestingSessionLocal
-import uuid
+
 
 @pytest.mark.api
 def test_deposit_and_get_balances(client):

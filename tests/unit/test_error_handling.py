@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,7 +11,7 @@ from app.core.ledger_logger import LedgerErrorLogger
 from app.ledger.services.ledger import LedgerService
 from tests.builders.account_builder import AccountBuilder
 from tests.conftest import TestingSessionLocal
-from decimal import Decimal
+
 
 def test_global_exception_handler_logs_once(monkeypatch):
     # add a temporary route that raises

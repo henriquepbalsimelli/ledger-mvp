@@ -5,7 +5,9 @@ import pytest
 from app.core.exceptions import InsufficientFunds, LockExceedsAvailable, UnlockExceedsLocked
 from app.ledger import schemas
 from app.ledger.services.ledger import LedgerService
+from tests.builders import AssetBuilder
 from tests.builders.account_builder import AccountBuilder
+from tests.conftest import TestingSessionLocal
 
 
 class TestFinancialInvariants:
@@ -71,67 +73,69 @@ class TestFinancialInvariants:
     def test_unlock_does_not_create_or_destroy_money(self, db_session, request_mock):
         service = LedgerService(db=db_session, request=request_mock)
         account = AccountBuilder(db_session).build()
-        asset = "USDC"
+        asset = AssetBuilder(db_session, nm_asset="USDC").get_or_create()
         service.deposit(
             account_id=account.id,
-            asset=asset,
+            asset=asset.nm_asset,
             amount=Decimal("100"),
             idempotency_key="dep-3",
             reference_id="ref-3",
         )
+        db_session.commit()
 
         payload = schemas.LockIn(
             account_id=account.id,
-            asset=asset,
+            asset=asset.nm_asset,
             amount=Decimal("50"),
             idempotency_key="lock-3",
             reference_id="ref-3",
         )
         service.lock_funds(payload)
+        db_session.commit()
 
         before = service.get_balances(account.id)
 
         service.unlock_funds(
             account_id=account.id,
-            asset="USDC",
+            asset=asset.nm_asset,
             amount=Decimal("20"),
             idempotency_key="unlock-3",
             reference_id="ref-unlock-3",
         )
-
+        db_session.commit()
         after = service.get_balances(account.id)
 
         assert (
-            before[asset]["available"] + before[asset]["locked"] == after[asset]["available"] + after[asset]["locked"]
+            before[asset.nm_asset]["available"] + before[asset.nm_asset]["locked"] == after[asset.nm_asset]["available"] + after[asset.nm_asset]["locked"]
         )
 
     def test_withdraw_reduces_total_balance(self, db_session, request_mock):
         service = LedgerService(db=db_session, request=request_mock)
-        asset = "USDC"
+        asset = AssetBuilder(db_session, nm_asset="USDC").get_or_create()
         account = AccountBuilder(db_session).build()
         service.deposit(
             account_id=account.id,
-            asset=asset,
+            asset=asset.nm_asset,
             amount=Decimal("100"),
             idempotency_key="dep-4",
             reference_id="ref-4",
         )
-
+        db_session.commit()
         before = service.get_balances(account.id)
 
         service.withdraw(
             account_id=account.id,
-            asset=asset,
+            asset=asset.nm_asset,
             amount=Decimal("30"),
             idempotency_key="wd-4",
             reference_id="ref-wd-4",
         )
-
+        db_session.commit()
         after = service.get_balances(account.id)
 
-        assert after[asset]["available"] >= 0
-        assert after[asset]["locked"] >= 0
-        assert after[asset]["available"] + after[asset]["locked"] == before[asset]["available"] + before[asset][
+        assert after[asset.nm_asset]["available"] >= 0
+        assert after[asset.nm_asset]["locked"] >= 0
+        assert after[asset.nm_asset]["available"] + after[asset.nm_asset]["locked"] == before[asset.nm_asset]["available"] + before[asset.nm_asset][
             "locked"
         ] - Decimal("30")
 
@@ -146,6 +150,7 @@ class TestFinancialInvariants:
             idempotency_key="dep-5",
             reference_id="ref-5",
         )
+        db_session.commit()
 
         with pytest.raises(LockExceedsAvailable):
             payload = schemas.LockIn(

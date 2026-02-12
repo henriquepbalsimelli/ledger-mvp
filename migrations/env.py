@@ -16,9 +16,11 @@ settings = get_settings()
 from app.core.db import Base
 from app.ledger.models.account import Account
 from app.ledger.models.balance import Balance
+from app.ledger.models.dominio import Dominio
 from app.ledger.models.event import LedgerEvent
 from app.ledger.models.settlement import Settlement
-from app.ledger.models.settlement_status import SettlementStatus
+from app.ledger.models.assets import Asset
+from app.ledger.models.balance_hold import BalanceHold
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

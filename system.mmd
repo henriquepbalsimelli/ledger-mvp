@@ -1,0 +1,47 @@
+flowchart TD
+  C[Cliente/Integrador] --> MW[RequestContextMiddleware\n\napp/core/middleware.py]
+  MW --> APIRouter[/FastAPI + rotas /ledger\napp/main.py\napp/ledger/controllers/ledger.py/]
+  APIRouter -->|Depends get_db| DBDep[get_db abre SessionLocal\ncommit/rollback/close\napp/core/db.py]
+  APIRouter --> Health[GET ]
+
+  subgraph OpsLedger [ledger/*/]
+    APIRouter --> Balances[GET /balances\nLedgerService.get_balances]
+    APIRouter --> Lock[POST /lock\nLedgerService.lock_funds]
+    APIRouter --> Unlock[POST /unlock\nLedgerService.unlock_funds]
+    APIRouter --> Deposit[POST /deposit\nLedgerService.deposit]
+    APIRouter --> Withdraw[POST /withdraw\nLedgerService.withdraw]
+  end
+
+  Balances --> RBalGet[LedgerBalanceRepository.get_balances_by_account_id]
+  Lock --> RBalLock[get_or_create_balance FOR UPDATE]
+  Lock --> EvLock[EventRepository.create_event delta -amount]
+  Unlock --> RBalUnlock[get_or_create_balance]
+  Unlock --> EvUnlock[EventRepository.create_event delta +amount]
+  Deposit --> RBalDep[get_or_create_balance]
+  Deposit --> EvDep[EventRepository.create_event delta +amount]
+  Withdraw --> RBalWith[get_or_create_balance]
+  Withdraw --> EvWith[EventRepository.create_event delta -amount]
+
+  RBalGet --> PG[(PostgreSQL)]
+  RBalLock --> PG
+  RBalUnlock --> PG
+  RBalDep --> PG
+  RBalWith --> PG
+  EvLock --> PG
+  EvUnlock --> PG
+  EvDep --> PG
+  EvWith --> PG
+
+  Lock -->|available < amount| ErrLock[HTTP 409 LockExceedsAvailable\napp/core/exceptions.py]
+  Unlock -->|locked < amount| ErrUnlock[HTTP 409 UnlockExceedsLocked\napp/core/exceptions.py]
+  Withdraw -->|available < amount| ErrInsuff[HTTP 409 InsufficientFunds\napp/core/exceptions.py]
+  Any[Qualquer exceção não tratada] -.-> GlobalErr[Exception handler 500\napp/main.py]
+  DBDep -.rollback.-> Any
+
+  Lock --> LogInfo[LedgerLogger.lock -> info\napp/core/ledger_logger.py]
+  Deposit --> LogInfo
+  Withdraw --> LogInfo2[LedgerLogger.withdraw -> info]
+  Unlock --> LogInfo3[LedgerLogger.unlock -> info]
+  ErrLock --> LogWarn[LedgerErrorLogger.lock_exceeds_available -> warning]
+  ErrUnlock --> LogWarn2[LedgerErrorLogger.unlock_exceeds_locked -> warning]
+  ErrInsuff --> LogWarn3[LedgerErrorLogger.insufficient_funds -> warning]

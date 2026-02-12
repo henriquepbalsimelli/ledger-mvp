@@ -195,3 +195,18 @@ class LedgerErrorLogMapper:
             "idempotency_key": idempotency_key,
             "reference_id": reference_id,
         }
+
+    @staticmethod
+    def invalid_settlement_state(
+        settlement_id: int,
+        current_status: str,
+        request_id: str,
+    ):
+        return {
+            "settlement_id": settlement_id,
+            "error_type": "INVALID_SETTLEMENT_STATE",
+            "error_code": "LEDGER_010",
+            "impact": "none",
+            "current_status": current_status,
+            "request_id": request_id,
+        }

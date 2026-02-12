@@ -1,11 +1,12 @@
-from decimal import Decimal, ROUND_DOWN
+import uuid
+from decimal import ROUND_DOWN, Decimal
 
 from sqlalchemy import text
 
 from app.ledger.services.ledger import LedgerService
 from tests.builders.account_builder import AccountBuilder
-import uuid
 from tests.conftest import TestingSessionLocal
+
 
 def test_decimal_precision_and_event_sum(request_mock):
     session = TestingSessionLocal()
@@ -56,12 +57,21 @@ def test_decimal_precision_and_event_sum(request_mock):
     total_balance = Decimal(balances["available"]) + Decimal(balances["locked"])
 
     # Lock e Unlock não alteram o saldo total
-    events_sum = sum([Decimal(row[0]) for row in session.execute(text(f"""
+    events_sum = sum(
+        [
+            Decimal(row[0])
+            for row in session.execute(
+                text(
+                    f"""
         select delta 
         from event 
         where account_id = {account_id} 
         and event_type in ('deposit', 'withdraw')
-    """))])
+    """
+                )
+            )
+        ]
+    )
 
     assert total_balance == events_sum
     assert total_balance.as_tuple().exponent >= -8

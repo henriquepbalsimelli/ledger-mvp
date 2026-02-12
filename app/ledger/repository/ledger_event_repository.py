@@ -23,7 +23,7 @@ class EventRepository:
         self,
         idempotency_key: str,
         account_id: int,
-        asset: str,
+        id_asset: int,
         delta: Decimal,
         event_type: str,
         reference_type: str,
@@ -32,7 +32,7 @@ class EventRepository:
         ev = LedgerEvent(
             idempotency_key=idempotency_key,
             account_id=account_id,
-            asset=asset,
+            id_asset=id_asset,
             delta=delta,
             event_type=event_type,
             reference_type=reference_type,

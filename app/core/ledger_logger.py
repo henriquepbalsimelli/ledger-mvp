@@ -66,3 +66,7 @@ class LedgerErrorLogger:
     def event_exists(self, **kwargs):
         data = LedgerErrorLogMapper.event_exists(**kwargs, request_id=self.request.state.request_id)
         ContextLogger(self._logger, data).warning("event_exists")
+
+    def invalid_settlement_state(self, **kwargs):
+        data = LedgerErrorLogMapper.invalid_settlement_state(**kwargs, request_id=self.request.state.request_id)
+        ContextLogger(self._logger, data).warning("invalid_settlement_state")

@@ -22,6 +22,7 @@ def test_deposit_idempotent(db_session, request_mock):
         idempotency_key=key,
         reference_id="ref-1",
     )
+    db_session.commit()
     before = _balance_snapshot(service, account.id, "USDC")
 
     ev_again, _ = service.deposit(
@@ -31,6 +32,7 @@ def test_deposit_idempotent(db_session, request_mock):
         idempotency_key=key,
         reference_id="ref-ignored",
     )
+    db_session.commit()
     after = _balance_snapshot(service, account.id, "USDC")
 
     assert before == after
@@ -43,6 +45,7 @@ def test_lock_idempotent(db_session, request_mock):
     key = "idemp-lock"
 
     service.deposit(account_id=account.id, asset="USDC", amount=Decimal("100"), idempotency_key="dep", reference_id="r")
+    db_session.commit()
     service.lock_funds(
         payload=schemas.LockIn(
             account_id=account.id,
@@ -52,6 +55,7 @@ def test_lock_idempotent(db_session, request_mock):
             reference_id="r1",
         )
     )
+    db_session.commit()
     before = _balance_snapshot(service, account.id, "USDC")
 
     ev_again, _ = service.lock_funds(
@@ -63,6 +67,7 @@ def test_lock_idempotent(db_session, request_mock):
             reference_id="r1b",
         )
     )
+    db_session.commit()
     after = _balance_snapshot(service, account.id, "USDC")
 
     assert before == after
@@ -74,7 +79,10 @@ def test_unlock_idempotent(db_session, request_mock):
     account = AccountBuilder(db_session).build()
     key = "idemp-unlock"
 
-    service.deposit(account_id=account.id, asset="USDC", amount=Decimal("100"), idempotency_key="dep2", reference_id="r")
+    service.deposit(
+        account_id=account.id, asset="USDC", amount=Decimal("100"), idempotency_key="dep2", reference_id="r"
+    )
+    db_session.commit()
     service.lock_funds(
         payload=schemas.LockIn(
             account_id=account.id,
@@ -84,6 +92,7 @@ def test_unlock_idempotent(db_session, request_mock):
             reference_id="r2",
         )
     )
+    db_session.commit()
     before = _balance_snapshot(service, account.id, "USDC")
 
     ev_again, _ = service.unlock_funds(
@@ -93,6 +102,7 @@ def test_unlock_idempotent(db_session, request_mock):
         amount=Decimal("10"),
         reference_id="r3",
     )
+    db_session.commit()
     after = _balance_snapshot(service, account.id, "USDC")
     # first unlock
     assert after[0] == before[0] + Decimal("10")
@@ -106,6 +116,7 @@ def test_unlock_idempotent(db_session, request_mock):
         amount=Decimal("999"),
         reference_id="r3b",
     )
+    db_session.commit()
     second_after = _balance_snapshot(service, account.id, "USDC")
 
     assert second_before == second_after
@@ -117,7 +128,10 @@ def test_withdraw_idempotent(db_session, request_mock):
     account = AccountBuilder(db_session).build()
     key = "idemp-withdraw"
 
-    service.deposit(account_id=account.id, asset="USDC", amount=Decimal("100"), idempotency_key="dep3", reference_id="r")
+    service.deposit(
+        account_id=account.id, asset="USDC", amount=Decimal("100"), idempotency_key="dep3", reference_id="r"
+    )
+    db_session.commit()
     before = _balance_snapshot(service, account.id, "USDC")
 
     service.withdraw(
@@ -127,6 +141,7 @@ def test_withdraw_idempotent(db_session, request_mock):
         idempotency_key=key,
         reference_id="wd1",
     )
+    db_session.commit()
     after = _balance_snapshot(service, account.id, "USDC")
     assert after[0] == before[0] - Decimal("25")
 
@@ -137,6 +152,7 @@ def test_withdraw_idempotent(db_session, request_mock):
         idempotency_key=key,
         reference_id="wd1b",
     )
+    db_session.commit()
     final = _balance_snapshot(service, account.id, "USDC")
 
     assert final == after

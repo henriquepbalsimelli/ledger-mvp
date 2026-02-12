@@ -1,10 +1,9 @@
 import threading
 import uuid
 from decimal import Decimal
+from types import SimpleNamespace
 
 import pytest
-
-from types import SimpleNamespace
 
 from app.core.exceptions import LockExceedsAvailable
 from app.ledger import schemas

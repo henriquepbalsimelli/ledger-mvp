@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from starlette.requests import Request
 
 from app.core.ledger_logger import LedgerErrorLogger
+from app.ledger.schemas import request
 
 
 class InsufficientFunds(HTTPException):
@@ -29,3 +30,21 @@ class UnlockExceedsLocked(HTTPException):
 
         self.ledger_log_error = LedgerErrorLogger(__name__, request)
         self.ledger_log_error.unlock_exceeds_locked(**payload)
+
+
+class SettleExceedsLocked(HTTPException):
+    def __init__(self, request: Request, payload, message="Settle exceeds locked funds"):
+        self.message = message
+        super().__init__(detail=self.message, status_code=409)
+
+        self.ledger_log_error = LedgerErrorLogger(__name__, request)
+        self.ledger_log_error.settle_exceeds_locked(**payload)
+
+
+class InvalidSettlementState(HTTPException):
+    def __init__(self, request: Request, payload, message="Invalid settlement state"):
+        self.message = message
+        super().__init__(detail=self.message, status_code=409)
+
+        self.ledger_log_error = LedgerErrorLogger(__name__, request)
+        self.ledger_log_error.invalid_settlement_state(**payload)
